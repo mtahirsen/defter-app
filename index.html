@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Defter — Claude sohbetlerin kaybolmasın</title>
+<meta name="description" content="Defter; Claude Code sohbetlerini arayan, hangi projede geçtiğini bulan ve tek tuşla terminalde kaldığın yerden devam ettiren ücretsiz bir macOS uygulaması.">
+<meta name="theme-color" content="#140805">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Defter — Claude sohbetlerin kaybolmasın">
+<meta property="og:description" content="Claude Code sohbetlerini ara, ⌘⇧K ile her yerden bul, tek tuşla terminalde devam et. Yerel, hızlı, ücretsiz.">
+<meta property="og:image" content="https://mtahirsen.github.io/defter-app/assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script>document.documentElement.classList.add("js")</script>
+<style>
+:root{
+  --bg:#140805; --ink:#fbf4ef; --mute:rgba(251,244,239,.66); --faint:rgba(251,244,239,.42);
+  --line:rgba(255,255,255,.09); --clay:#e38763; --clay-l:#ffc8a8; --gold:#ffd08a;
+  --accent-g:linear-gradient(135deg,#ee9a72,#c85f3d);
+  --radius:22px; --maxw:1180px;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",system-ui,"Segoe UI",sans-serif;
+  --round:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+h1,h2{font-weight:300;letter-spacing:-.025em;line-height:1.06;margin:0}
+h2{font-size:clamp(34px,4.6vw,56px)}
+h1 strong,h2 strong{font-weight:700;background:linear-gradient(120deg,#fff 10%,var(--clay-l) 55%,var(--clay) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+kbd{font-family:var(--round);font-weight:600;font-size:.82em;padding:2px 8px;border-radius:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-bottom-width:2px;white-space:nowrap}
+h2 .keys{display:inline-flex;gap:10px;margin-top:14px}
+h2 .keys kbd{font-size:.62em;padding:6px 16px;border-radius:12px;color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));border-color:rgba(255,200,168,.35);box-shadow:0 10px 30px rgba(200,95,61,.25)}
+code{font-family:var(--mono);font-size:.86em;background:rgba(255,255,255,.07);padding:2px 6px;border-radius:6px}
+
+/* Gezinme */
+.nav{position:fixed;inset:0 0 auto 0;z-index:50;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+.nav.scrolled{background:rgba(20,8,5,.72);backdrop-filter:saturate(160%) blur(18px);-webkit-backdrop-filter:saturate(160%) blur(18px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--round);font-weight:700;font-size:19px}
+.brand img{width:30px;height:30px}
+.nav ul{display:flex;gap:30px;list-style:none;margin:0;padding:0;font-size:14.5px;color:var(--mute)}
+.nav ul a:hover{color:var(--ink)}
+.pill{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:9px 18px;font-weight:600;font-size:14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);transition:transform .2s,background .2s}
+.pill:hover{background:rgba(255,255,255,.14);transform:translateY(-1px)}
+.pill.accent{background:var(--accent-g);border-color:transparent;box-shadow:0 8px 30px rgba(200,95,61,.4)}
+.pill.big{padding:14px 28px;font-size:16px}
+
+/* Kahraman */
+.hero{position:relative;padding:140px 0 70px;overflow:hidden;isolation:isolate;text-align:center}
+.glow{position:absolute;border-radius:50%;filter:blur(90px);opacity:.8;z-index:-1;animation:drift 18s ease-in-out infinite alternate}
+.g1{width:760px;height:760px;left:-200px;top:-180px;background:radial-gradient(circle,#8a3a1e 0%,transparent 65%)}
+.g2{width:640px;height:640px;right:-180px;top:40px;background:radial-gradient(circle,#7a4a14 0%,transparent 65%);animation-delay:-6s}
+.g3{width:560px;height:560px;left:32%;top:420px;background:radial-gradient(circle,#5a1d2a 0%,transparent 65%);animation-delay:-12s;opacity:.6}
+@keyframes drift{to{transform:translate(60px,40px) scale(1.08)}}
+.app-icon{width:112px;height:112px;margin:0 auto 26px;filter:drop-shadow(0 18px 40px rgba(200,95,61,.45))}
+.hero h1{font-size:clamp(44px,7vw,86px)}
+.lead{max-width:680px;margin:22px auto 34px;font-size:clamp(17px,1.6vw,20px);color:var(--mute)}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.meta{margin-top:16px;font-size:13.5px;color:var(--faint)}
+.shot{margin:64px auto 0;max-width:min(1100px,100%);border-radius:14px;box-shadow:0 40px 120px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08)}
+
+/* Bölümler */
+section.block{padding:110px 0}
+.center{text-align:center;max-width:760px;margin:0 auto}
+.center p{color:var(--mute);font-size:18px;margin:20px auto 0}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--clay-l);margin-bottom:18px}
+.chip i{display:grid;place-items:center;width:24px;height:24px;border-radius:7px;font-style:normal;background:var(--accent-g);color:#fff;font-size:13px}
+.split{display:grid;grid-template-columns:1fr 1.15fr;gap:60px;align-items:center}
+.split.rev{grid-template-columns:1.15fr 1fr}
+.split>*{min-width:0}
+.split.rev .txt{order:2}
+.txt h2{font-size:clamp(32px,4vw,48px)}
+.txt p{color:var(--mute);font-size:17.5px}
+.txt ul{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:12px}
+.txt li{position:relative;padding-left:20px;color:rgba(251,244,239,.86);font-size:16px}
+.txt li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:7px;border-radius:50%;background:var(--clay)}
+.stack{position:relative}
+.stack img{border-radius:22px;box-shadow:0 30px 90px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08)}
+.stack img+img{width:82%;margin:-40px 0 0 auto;position:relative}
+.panel-shot{border-radius:14px;box-shadow:0 30px 90px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08)}
+.path{overflow-x:auto;white-space:nowrap;font-family:var(--mono);font-size:14px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:16px;padding:20px 22px;line-height:2}
+.path .dim{color:var(--faint)}
+.path .hl{color:var(--gold)}
+
+/* Kartlar */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:50px}
+.card{padding:26px 24px;border-radius:var(--radius);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid var(--line)}
+.card .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(227,135,99,.16);margin-bottom:16px;font-size:19px}
+.card h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.card p{margin:0;font-size:14.5px;color:var(--mute)}
+
+/* Kurulum */
+.steps{list-style:none;padding:0;margin:44px 0 0;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.steps li{padding:26px 22px 24px;border-radius:var(--radius);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid var(--line)}
+.steps b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;margin-bottom:16px;font-size:15px;background:var(--accent-g)}
+.steps h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.steps p{margin:0;font-size:14.5px;color:var(--mute)}
+.steps a{color:var(--clay-l);text-decoration:underline}
+.steps em{font-style:normal;color:rgba(251,244,239,.92)}
+.tech{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:28px}
+.tech span{padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:14px;color:var(--mute)}
+.faq{max-width:780px;margin:80px auto 0}
+.faq details{border-bottom:1px solid var(--line);padding:18px 4px}
+.faq summary{cursor:pointer;font-weight:600;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:20px}
+.faq summary::after{content:"+";color:var(--clay);font-size:22px;line-height:1}
+.faq details[open] summary::after{content:"–"}
+.faq p{color:var(--mute);margin:12px 0 0;font-size:15.5px}
+
+/* Kapanış */
+.final{position:relative;padding:150px 0 120px;text-align:center;overflow:hidden;isolation:isolate}
+.final .glow{opacity:.55}
+.final h2{font-size:clamp(40px,6vw,72px);margin:30px 0 18px}
+footer{border-top:1px solid var(--line);padding:34px 0 50px;color:var(--faint);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+
+/* Görünme animasyonu */
+.js .reveal{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease}
+.js .reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.glow{animation:none}.js .reveal{opacity:1;transform:none;transition:none}}
+
+@media (max-width:900px){
+  .nav ul{display:none}
+  .split,.split.rev{grid-template-columns:1fr;gap:36px}
+  .split.rev .txt{order:0}
+  .cards{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  section.block{padding:80px 0}
+}
+@media (max-width:560px){
+  .wrap{padding:0 16px}
+  .steps{grid-template-columns:1fr}
+  .nav .pill{padding:8px 14px}
+  .stack img+img{width:100%;margin-top:16px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+<div class="wrap">
+<a class="brand" href="#top"><img src="assets/icon-256.png" alt="">defter</a>
+<ul>
+<li><a href="#spotlight">Spotlight</a></li>
+<li><a href="#klasor">Doğru klasör</a></li>
+<li><a href="#gizlilik">Gizlilik</a></li>
+<li><a href="#kurulum">Kurulum</a></li>
+</ul>
+<a class="pill accent" href="https://github.com/mtahirsen/defter-app/releases/latest/download/Defter.dmg">İndir</a>
+</div>
+</nav>
+
+<header class="hero" id="top">
+<div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
+<div class="wrap">
+<img class="app-icon" src="assets/icon-256.png" alt="Defter simgesi" width="112" height="112">
+<h1>Claude sohbetlerin<br><strong>kaybolmasın.</strong></h1>
+<p class="lead">"O konuşmayı hangi klasörde yapmıştım?" sorusuna son. Defter, Claude Code sohbetlerini arar, hangi projede geçtiğini bulur ve tek tuşla terminalde kaldığın yerden devam ettirir.</p>
+<div class="cta">
+<a class="pill accent big" href="https://github.com/mtahirsen/defter-app/releases/latest/download/Defter.dmg">Mac için indir</a>
+<a class="pill big" href="#kurulum">Nasıl kurulur?</a>
+</div>
+<p class="meta">Ücretsiz · Sürüm 1.0 · 2,4 MB · macOS 15 ve üzeri · Apple Silicon ve Intel</p>
+<img class="shot reveal" src="assets/main.webp" alt="Defter ana penceresi: solda proje klasörleri, ortada sohbet listesi, sağda seçili sohbetin ayrıntıları" width="1240" height="760">
+</div>
+</header>
+
+<section class="block" id="spotlight">
+<div class="wrap split">
+<div class="txt reveal">
+<span class="chip"><i>⌘</i>Spotlight</span>
+<h2>Nerede olursan ol,<br><span class="keys"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>K</kbd></span></h2>
+<p>Tarayıcıda, editörde, toplantıda… Kısayola bas, aklında kalan bir kelimeyi yaz, <kbd>⏎</kbd>'ye bas. Sohbet iTerm2'de ya da Terminal'de, doğru klasörde açılır.</p>
+<ul>
+<li>Başlıklarda, yazdığın mesajlarda, klasör adlarında ve git dallarında arar.</li>
+<li>Türkçe karakter derdi yok: "gorsel" yazınca "Görsel" de bulunur.</li>
+<li><kbd>⌘⏎</kbd> Defter'de göster, <kbd>⌥⏎</kbd> komutu kopyala, <kbd>esc</kbd> kapat.</li>
+</ul>
+</div>
+<div class="stack reveal">
+<img src="assets/spot.webp" alt="Spotlight paneli: son sohbetler listesi" width="720" height="488">
+<img src="assets/spot-q.webp" alt="Spotlight panelinde 'sayfa' araması, eşleşen kelimeler vurgulu" width="720" height="218">
+</div>
+</div>
+</section>
+
+<section class="block" id="klasor" style="padding-top:20px">
+<div class="wrap split rev">
+<div class="txt reveal">
+<span class="chip"><i>⌂</i>Doğru klasör</span>
+<h2>Ev klasöründen<br>başlasan da<br><strong>projeni bilir.</strong></h2>
+<p>Çoğumuz <code>claude</code>'u ev klasöründe açıp sonra projeye geçeriz. Claude Code'un kendi listesi bu yüzden her şeyi tek yığında gösterir. Defter, sohbetin gerçekte hangi projede geçtiğini bulur ve onu o projenin altına koyar.</p>
+<ul>
+<li>Soldaki listede her proje, içinde geçen sohbetlerle birlikte.</li>
+<li>Devam ederken yine sohbetin başladığı yere gider; <code>--resume</code> oturumu ancak oradan bulur.</li>
+<li>Hook'ların arka planda açtığı otomatik oturumlar gizlenir, yalnız seninkiler kalır.</li>
+</ul>
+</div>
+<div class="reveal">
+<div class="path">
+<span class="dim">başlatıldığı yer</span> &nbsp;~<br>
+<span class="dim">çalışılan proje</span> &nbsp;~/Projects/<span class="hl">kafe-siparis</span><br>
+<span class="dim">devam komutu</span> &nbsp;&nbsp;&nbsp;cd ~ &amp;&amp; claude --resume 4f0d…
+</div>
+<img class="panel-shot" style="margin-top:22px" src="assets/search.webp" alt="Defter'de 'kupon' araması: eşleşen sohbet ve yazılan mesajlar vurgulu" width="1240" height="760">
+</div>
+</div>
+</section>
+
+<section class="block" id="gizlilik" style="padding-top:20px">
+<div class="wrap">
+<div class="center reveal">
+<span class="chip"><i>⛨</i>Gizlilik</span>
+<h2>Sohbetlerin<br><strong>Mac'inde kalır.</strong></h2>
+<p>Defter, Claude Code'un zaten diskinde tuttuğu kayıtları (<code>~/.claude/projects</code>) yalnızca okur. Hiçbir şeyi değiştirmez, silmez, internete göndermez.</p>
+</div>
+<div class="cards">
+<div class="card reveal"><div class="ic">⚡</div><h3>Gigabaytlarca kayıtta hızlı</h3><p>Kayıtlar ilk açılışta birkaç saniyede okunur; sonrasında yalnız yeni eklenenler okunduğu için arama anında sonuç verir.</p></div>
+<div class="card reveal"><div class="ic">◎</div><h3>İnternet yok, hesap yok</h3><p>Ağ bağlantısı kurmaz, analitik toplamaz, giriş istemez. Arama dizini yalnız senin Mac'inde durur.</p></div>
+<div class="card reveal"><div class="ic">☾</div><h3>Menü çubuğunda bekler</h3><p>Pencereyi kapatınca Dock'tan çekilir, menü çubuğunda kalır; bilgisayar açılınca sessizce başlar. İstersen ayarlardan kapat.</p></div>
+</div>
+
+<div class="center reveal" id="kurulum" style="margin-top:120px;scroll-margin-top:90px">
+<span class="chip"><i>⤓</i>Kurulum</span>
+<h2>Bir dakikada<br><strong>hazır.</strong></h2>
+</div>
+<ol class="steps">
+<li class="reveal"><b>1</b><h3>İndir</h3><p><a href="https://github.com/mtahirsen/defter-app/releases/latest/download/Defter.dmg">Defter.dmg</a> dosyasını açıp Defter'i <em>Uygulamalar</em> klasörüne sürükle.</p></li>
+<li class="reveal"><b>2</b><h3>İlk açılışa izin ver</h3><p>Defter henüz Apple tarafından notarize edilmedi. Uyarı çıkarsa <em>Sistem Ayarları › Gizlilik ve Güvenlik</em>'te <em>Yine de Aç</em>'a tıkla. Bir kez yeterli.</p></li>
+<li class="reveal"><b>3</b><h3>Terminal izni</h3><p>İlk "Devam Et"te macOS, Defter'in iTerm2'yi ya da Terminal'i yönetmesine izin isteyip istemediğini sorar: <em>İzin Ver</em>.</p></li>
+<li class="reveal"><b>4</b><h3><kbd>⌘</kbd><kbd>⇧</kbd><kbd>K</kbd></h3><p>Hepsi bu. Bir kelime yaz, <kbd>⏎</kbd>'ye bas, sohbet kaldığı yerden açılsın. Ana pencere için <kbd>⌃⌥C</kbd>.</p></li>
+</ol>
+
+<div class="center reveal" style="margin-top:100px">
+<h2 style="font-size:clamp(28px,3.6vw,40px)">Yerel, hızlı, <strong>sade.</strong></h2>
+<div class="tech">
+<span>Yerel SwiftUI</span><span>macOS 15 ve üzeri</span><span>Apple Silicon ve Intel</span><span>iTerm2 ya da Terminal</span><span>Claude Code gerekir</span><span>İnternet bağlantısı yok</span><span>Türkçe</span>
+</div>
+</div>
+
+<div class="faq reveal">
+<details><summary>Neden "geliştirici doğrulanamadı" uyarısı çıkıyor?</summary><p>Defter bağımsız geliştirilen ücretsiz bir uygulama ve Apple'ın ücretli notarizasyon sürecinden geçmedi. İnternete bağlanmaz, veri toplamaz. Uyarıyı bir kez <em>Sistem Ayarları › Gizlilik ve Güvenlik › Yine de Aç</em> ile geçmen yeterli.</p></details>
+<details><summary>Claude Code kurulu olmalı mı?</summary><p>Evet. Defter, Claude Code'un sohbet kayıtlarını okur ve devam etmek için terminalde <code>claude --resume</code> çalıştırır. <code>claude</code> komutu terminalinde çalışıyorsa Defter de çalışır.</p></details>
+<details><summary>⌘⇧K başka bir uygulamayla çakışıyor.</summary><p>Kısayol, Defter açıkken her yerde geçerlidir; başka bir uygulama aynı kısayolu kullanıyorsa ilk kaydeden kazanır. Menü çubuğundaki Defter simgesinden <em>Spotlight</em>'ı her zaman açabilirsin.</p></details>
+<details><summary>Claude masaüstü uygulamasındaki sohbetler de görünür mü?</summary><p>Masaüstü uygulamasının Claude Code oturumları aynı yerde tutulduğu için görünür ve terminalden devam ettirilebilir. claude.ai'deki normal sohbetler ise bulutta durduğu için Defter'de yer almaz.</p></details>
+<details><summary>Klasörü silinmiş bir proje varsa?</summary><p>Sohbet yine listelenir ve aranabilir, ama soluk görünür. Oturum o klasöre bağlı olduğu için devam ettirilemez.</p></details>
+</div>
+</div>
+</section>
+
+<section class="final">
+<div class="glow g1" style="left:10%;top:0"></div><div class="glow g2" style="right:5%;top:120px"></div>
+<div class="wrap reveal">
+<img class="app-icon" src="assets/icon-256.png" alt="" width="112" height="112">
+<h2>Kaldığın yerden<br><strong>devam et.</strong></h2>
+<div class="cta" style="margin-top:30px"><a class="pill accent big" href="https://github.com/mtahirsen/defter-app/releases/latest/download/Defter.dmg">Defter'i indir</a></div>
+<p class="meta">Ücretsiz · Sürüm 1.0 · 2,4 MB · macOS 15 ve üzeri, Apple Silicon ve Intel</p>
+<p style="margin-top:10px;font-size:13.5px;color:var(--faint)"><a href="https://github.com/mtahirsen/defter-app/releases" style="text-decoration:underline">Tüm sürümler ve SHA-256 özeti</a></p>
+</div>
+</section>
+
+<footer>
+<div class="wrap">
+<a class="brand" href="#top" style="color:var(--mute)"><img src="assets/icon-256.png" alt="">defter</a>
+<span>* Ekran görüntüleri demo modundan, uydurma sohbetlerle alınmıştır. Defter, Anthropic ile bağlantılı değildir.</span>
+<span>© <span id="y">2026</span> Tahir Şen</span>
+</div>
+</footer>
+
+<script>
+const nav = document.getElementById('nav');
+const onScroll = () => nav.classList.toggle('scrolled', scrollY > 20);
+addEventListener('scroll', onScroll, {passive: true}); onScroll();
+const items = document.querySelectorAll('.reveal');
+if (!('IntersectionObserver' in window) || location.search.includes('static')) {
+  items.forEach(el => el.classList.add('in'));
+} else {
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }),
+    {threshold: .08, rootMargin: '0px 0px -40px 0px'});
+  items.forEach(el => io.observe(el));
+}
+document.getElementById('y').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
